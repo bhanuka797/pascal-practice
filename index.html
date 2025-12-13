@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Pascal Practice Tutor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="font-family:Arial; padding:20px;">
+
+<h2>AI Pascal Practice Tutor</h2>
+<p>Paste your Pascal code or type a question below:</p>
+
+<textarea id="userInput" rows="8" style="width:100%;"></textarea>
+
+<br><br>
+
+<button onclick="send()">Ask AI</button>
+
+<pre id="reply" style="background:#f4f4f4; padding:10px;"></pre>
+
+<script>
+function send(){
+  document.getElementById("reply").innerText =
+  "AI response will appear here.\n(Next step: connect AI)";
+}
+</script>
+
+</body>
+</html>
