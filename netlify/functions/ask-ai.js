@@ -1,39 +1,46 @@
-export default async (request) => {
-  try {
-    const body = await request.json();
-    const userInput = body.message;
+import OpenAI from "openai";
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are a Pascal programming tutor for Sri Lankan GCE O/L ICT students. Explain simply using Sinhala + English mix. Focus on exam logic and common mistakes."
-          },
-          {
-            role: "user",
-            content: userInput
-          }
-        ]
-      })
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export async function handler(event) {
+  try {
+    const { message } = JSON.parse(event.body || "{}");
+
+    if (!message) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ reply: "No input received." }),
+      };
+    }
+
+    const response = await client.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
+        {
+          role: "system",
+          content:
+            "You are an ICT teacher. Explain Pascal programs simply for school students.",
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
     });
 
-    const data = await response.json();
-    return new Response(
-      JSON.stringify({ reply: data.choices[0].message.content }),
-      { headers: { "Content-Type": "application/json" } }
-    );
-
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        reply: response.output_text,
+      }),
+    };
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: "AI error" }),
-      { status: 500 }
-    );
+    console.error(error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ reply: "AI server error." }),
+    };
   }
-};
+}
