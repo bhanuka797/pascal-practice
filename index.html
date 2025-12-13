@@ -4,25 +4,44 @@
   <title>AI Pascal Practice Tutor</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
+
 <body style="font-family:Arial; padding:20px;">
 
-<h2>AI Pascal Practice Tutor</h2>
-<p>Paste your Pascal code or type a question below:</p>
+  <h2>AI Pascal Practice Tutor</h2>
+  <p>Paste your Pascal code or type a question below:</p>
 
-<textarea id="userInput" rows="8" style="width:100%;"></textarea>
+  <textarea id="userInput" rows="8" style="width:100%;"></textarea>
 
-<br><br>
+  <br><br>
 
-<button onclick="send()">Ask AI</button>
+  <button onclick="send()">Ask AI</button>
 
-<pre id="reply" style="background:#f4f4f4; padding:10px;"></pre>
+  <pre id="reply" style="background:#f3f3f3; padding:10px; margin-top:15px;">
+AI response will appear here.
+  </pre>
 
-<script>
-function send(){
-  document.getElementById("reply").innerText =
-  "AI response will appear here.\n(Next step: connect AI)";
-}
-</script>
+  <script>
+    async function send() {
+      const input = document.getElementById("userInput").value;
+      document.getElementById("reply").innerText = "Thinking...";
+
+      try {
+        const response = await fetch("/.netlify/functions/ask-ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: input })
+        });
+
+        const data = await response.json();
+        document.getElementById("reply").innerText =
+          data.reply || "AI error. Try again.";
+
+      } catch (e) {
+        document.getElementById("reply").innerText =
+          "Connection error.";
+      }
+    }
+  </script>
 
 </body>
 </html>
