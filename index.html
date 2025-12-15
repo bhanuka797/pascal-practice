@@ -1,45 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>AI Pascal Practice Tutor</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Pascal Practice AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 30px;
+    }
+    h1 {
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 5px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
+<body>
 
-<body style="font-family:Arial; padding:20px;">
+  <h1>Pascal Practice AI</h1>
 
-  <h2>AI Pascal Practice Tutor</h2>
-  <p>Paste your Pascal code or type a question below:</p>
+  <p>Type your Pascal question:</p>
 
-  <textarea id="userInput" rows="8" style="width:100%;"></textarea>
+  <textarea id="question" placeholder="Example: Explain Pascal for loop with example"></textarea>
+  <br />
+  <button onclick="askAI()">Ask</button>
 
-  <br><br>
-
-  <button onclick="send()">Ask AI</button>
-
-  <pre id="reply" style="background:#f3f3f3; padding:10px; margin-top:15px;">
-AI response will appear here.
-  </pre>
+  <div id="output"></div>
 
   <script>
-    async function send() {
-      const input = document.getElementById("userInput").value;
-      document.getElementById("reply").innerText = "Thinking...";
+    async function askAI() {
+      const question = document.getElementById("question").value;
+      const output = document.getElementById("output");
 
-      try {
-        const response = await fetch("/.netlify/functions/ask-ai", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: input })
-        });
+      output.innerText = "Thinking...";
 
-        const data = await response.json();
-        document.getElementById("reply").innerText =
-          data.reply || "AI error. Try again.";
+      const res = await fetch("/.netlify/functions/ask-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: question }),
+      });
 
-      } catch (e) {
-        document.getElementById("reply").innerText =
-          "Connection error.";
-      }
+      const data = await res.json();
+      output.innerText = data.reply || data.error;
     }
   </script>
 
