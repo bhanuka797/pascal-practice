@@ -2,10 +2,12 @@ const OpenAI = require("openai");
 
 exports.handler = async function (event) {
   try {
+    // Only POST
     if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
-        body: "Method Not Allowed",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "Method Not Allowed" }),
       };
     }
 
@@ -15,6 +17,7 @@ exports.handler = async function (event) {
     if (!message) {
       return {
         statusCode: 400,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ error: "No message provided" }),
       };
     }
@@ -23,7 +26,7 @@ exports.handler = async function (event) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const response = await client.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: "You are a Pascal programming tutor." },
@@ -33,16 +36,15 @@ exports.handler = async function (event) {
 
     return {
       statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        reply: response.choices[0].message.content,
+        reply: completion.choices[0].message.content,
       }),
     };
   } catch (err) {
     return {
       statusCode: 500,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         error: "Server error",
         details: err.message,
@@ -50,4 +52,3 @@ exports.handler = async function (event) {
     };
   }
 };
-
