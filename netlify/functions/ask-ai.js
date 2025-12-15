@@ -6,41 +6,45 @@ const client = new OpenAI({
 
 export async function handler(event) {
   try {
-    const { message } = JSON.parse(event.body || "{}");
-
-    if (!message) {
+    // ✅ Only allow POST
+    if (event.httpMethod !== "POST") {
       return {
-        statusCode: 400,
-        body: JSON.stringify({ reply: "No input received." }),
+        statusCode: 405,
+        body: JSON.stringify({ error: "Method Not Allowed" }),
       };
     }
 
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: [
+    // ✅ Parse body safely
+    const body = JSON.parse(event.body || "{}");
+    const message = body.message;
+
+    if (!message || message.trim() === "") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "No message provided" }),
+      };
+    }
+
+    // ✅ OpenAI API call (LATEST syntax)
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
         {
           role: "system",
           content:
-            "You are an ICT teacher. Explain Pascal programs simply for school students.",
+            "You are a helpful Pascal programming tutor for students. Explain clearly with examples.",
         },
         {
           role: "user",
           content: message,
         },
       ],
+      temperature: 0.4,
     });
+
+    const reply = response.choices[0].message.content;
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        reply: response.output_text,
-      }),
-    };
-  } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ reply: "AI server error." }),
-    };
-  }
-}
+      headers: {
+        "Content-Type": "application/json",
