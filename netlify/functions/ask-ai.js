@@ -1,8 +1,11 @@
 const OpenAI = require("openai");
 
-exports.handler = async function (event) {
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+exports.handler = async (event) => {
   try {
-    // Allow only POST
     if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
@@ -16,35 +19,30 @@ exports.handler = async function (event) {
     if (!message) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "No message provided" }),
+        body: JSON.stringify({ error: "Message is required" }),
       };
     }
 
-    const client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
-    const completion = await client.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a Pascal programming tutor." },
-        { role: "user", content: message },
+        { role: "system", content: "You are a helpful Pascal programming tutor." },
+        { role: "user", content: message }
       ],
     });
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        reply: completion.choices[0].message.content,
+        reply: response.choices[0].message.content,
       }),
     };
-  } catch (err) {
+
+  } catch (error) {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        error: "Server error",
-        details: err.message,
+        error: error.message || "Server error",
       }),
     };
   }
