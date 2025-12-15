@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pascal Practice AI</title>
+  <title>AI Pascal Practice Tutor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,7 +16,7 @@
     }
     textarea {
       width: 100%;
-      height: 120px;
+      height: 160px;
       padding: 10px;
       font-size: 16px;
     }
@@ -30,36 +32,58 @@
       background: #fff;
       border-radius: 5px;
       white-space: pre-wrap;
+      min-height: 60px;
     }
   </style>
 </head>
+
 <body>
 
-  <h1>Pascal Practice AI</h1>
+  <h1>AI Pascal Practice Tutor</h1>
 
-  <p>Type your Pascal question:</p>
+  <p>Paste your Pascal code or type a question below:</p>
 
-  <textarea id="question" placeholder="Example: Explain Pascal for loop with example"></textarea>
+  <textarea id="input" placeholder="Example: Explain Pascal for loop"></textarea>
+
   <br />
-  <button onclick="askAI()">Ask</button>
 
-  <div id="output"></div>
+  <button onclick="askAI()">Ask AI</button>
+
+  <div id="output">AI response will appear here.</div>
 
   <script>
     async function askAI() {
-      const question = document.getElementById("question").value;
+      const input = document.getElementById("input").value.trim();
       const output = document.getElementById("output");
+
+      if (!input) {
+        output.innerText = "Please enter a question or Pascal code.";
+        return;
+      }
 
       output.innerText = "Thinking...";
 
-      const res = await fetch("/.netlify/functions/ask-ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: question }),
-      });
+      try {
+        const response = await fetch("/.netlify/functions/ask-ai", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: input })
+        });
 
-      const data = await res.json();
-      output.innerText = data.reply || data.error;
+        const data = await response.json();
+
+        if (data.reply) {
+          output.innerText = data.reply;
+        } else if (data.error) {
+          output.innerText = "Error: " + data.error;
+        } else {
+          output.innerText = "No response from AI.";
+        }
+      } catch (err) {
+        output.innerText = "Failed to connect to AI service.";
+      }
     }
   </script>
 
