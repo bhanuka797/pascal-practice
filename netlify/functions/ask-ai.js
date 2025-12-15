@@ -61,7 +61,8 @@ ${message}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        reply: response.output_text,
+        reply: response.output[0].content[0].text,
+
       }),
     };
   } catch (error) {
