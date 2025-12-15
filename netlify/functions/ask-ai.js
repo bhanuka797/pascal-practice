@@ -6,45 +6,74 @@ const client = new OpenAI({
 
 export async function handler(event) {
   try {
-    // ✅ Only allow POST
+    // ✅ CORS
+    if (event.httpMethod === "OPTIONS") {
+      return {
+        statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+        },
+        body: "",
+      };
+    }
+
+    // ✅ Only POST allowed
     if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
         body: JSON.stringify({ error: "Method Not Allowed" }),
       };
     }
 
-    // ✅ Parse body safely
+    // ✅ Read message
     const body = JSON.parse(event.body || "{}");
     const message = body.message;
 
     if (!message || message.trim() === "") {
       return {
         statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
         body: JSON.stringify({ error: "No message provided" }),
       };
     }
 
-    // ✅ OpenAI API call (LATEST syntax)
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful Pascal programming tutor for students. Explain clearly with examples.",
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
-      temperature: 0.4,
-    });
+    // ✅ NEW OpenAI Responses API
+    const response = await client.responses.create({
+      model: "gpt-4.1-mini",
+      input: `You are a Pascal programming tutor.
+Explain clearly with examples.
 
-    const reply = response.choices[0].message.content;
+Question:
+${message}`,
+    });
 
     return {
       statusCode: 200,
       headers: {
+        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        reply: response.output_text,
+      }),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        error: "Server error",
+        details: error.message,
+      }),
+    };
+  }
+}
