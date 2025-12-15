@@ -26,23 +26,33 @@ export async function handler(event) {
     const response = await client.responses.create({
       model: "gpt-5-mini",
       input: message,
-      max_output_tokens: 250,
+      max_output_tokens: 300,
     });
+
+    // ✅ SAFE TEXT EXTRACTION (THIS IS THE FIX)
+    let reply = "No response from AI";
+
+    if (
+      response.output &&
+      response.output[0] &&
+      response.output[0].content &&
+      response.output[0].content[0] &&
+      response.output[0].content[0].text
+    ) {
+      reply = response.output[0].content[0].text;
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        reply: response.output_text || "No response from AI",
-      }),
+      body: JSON.stringify({ reply }),
     };
 
-  } catch (err) {
+  } catch (error) {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        error: err.message || "Server error",
+        error: error.message || "Server error",
       }),
     };
   }
 }
-
